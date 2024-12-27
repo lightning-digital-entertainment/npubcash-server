@@ -19,48 +19,57 @@ import {
 import { getNip98AuthController } from "./controller/auth";
 
 const routes = Router();
+const v1Router = Router();
+const v2Router = Router();
 
 routes.get("/.well-known/lnurlp/:user", lnurlController);
 routes.get("/.well-known/nostr.json", nip05Controller);
 
-routes.get("/auth", getNip98AuthController);
+v2Router.get(
+  "/auth/nip98",
+  isAuthMiddleware("/api/v2/auth", "GET"),
+  getNip98AuthController,
+);
 
-routes.get(
-  "/api/v1/info",
+v1Router.get(
+  "/info",
   isAuthMiddleware(`/api/v1/info`, "GET"),
   getInfoController,
 );
-routes.put(
-  "/api/v1/info/mint",
+v1Router.put(
+  "/info/mint",
   isAuthMiddleware(`/api/v1/info/mint`, "PUT"),
   putMintInfoController,
 );
-routes.put(
-  "/api/v1/info/username",
+v1Router.put(
+  "/info/username",
   isAuthMiddleware(`/api/v1/info/username`, "PUT"),
   putUsernameInfoController,
 );
-routes.post("/api/v1/paid", paidController);
-routes.get(
-  "/api/v1/claim",
+v1Router.post("/paid", paidController);
+v1Router.get(
+  "/claim",
   isAuthMiddleware("/api/v1/claim", "GET"),
   claimGetController,
 );
-routes.get(
-  "/api/v1/balance",
+v1Router.get(
+  "/balance",
   isAuthMiddleware("/api/v1/balance", "GET"),
   balanceController,
 );
-routes.get(
-  "/api/v1/withdrawals",
+v1Router.get(
+  "/withdrawals",
   isAuthMiddleware("/api/v1/withdrawals", "GET"),
   getLatestWithdrawalsController,
 );
 
-routes.get(
-  "/api/v1/withdrawals/:id",
+v1Router.get(
+  "/withdrawals/:id",
   isAuthMiddleware("/api/v1/withdrawals/:id", "GET"),
   getWithdrawalDetailsController,
 );
+
+routes.use("/api/v1", v1Router);
+routes.use("/api/v2", v2Router);
 
 export default routes;
