@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
-const esbuild = require("esbuild");
+import esbuild from "esbuild";
 
 esbuild
   .build({
     outdir: "dist/",
-    format: "cjs",
+    format: "esm",
     platform: "node",
     entryPoints: ["src/index.ts"],
+    packages: "external",
     bundle: true,
     sourcemap: "external",
   })

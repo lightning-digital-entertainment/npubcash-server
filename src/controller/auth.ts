@@ -35,12 +35,15 @@ export async function getNip98AuthController(req: Request, res: Response) {
   res.json({ error: false, data: { token: jwt } });
 }
 
-export async function getOTPAuthController(req: Request, res: Response) {
+export async function getOTPAuthController(
+  req: Request<unknown, unknown, unknown, { relay?: string }>,
+  res: Response,
+) {
   const authData = req.authData!;
   const preferredRelay = req.query.relay;
   const otp = generateOtp();
 
   const otpJwt = generateOtpJwt(authData.data.pubkey, otp);
-  await publishOtp(authData.data.pubkey, otp);
+  await publishOtp(authData.data.pubkey, otp, preferredRelay);
   res.json({ error: false, data: { token: otpJwt, otp } });
 }

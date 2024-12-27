@@ -5,7 +5,7 @@ import {
   finalizeEvent,
   validateEvent,
 } from "nostr-tools";
-import nip17 from "nostr-tools/nip17";
+import { wrapEvent } from "nostr-tools/nip17";
 import { ZapRequestData } from "../types";
 import { nostrPool } from "../config";
 import { hexToBytes } from "@noble/hashes/utils";
@@ -147,7 +147,7 @@ export async function publishOtp(
     throw new Error("No nostr key set");
   }
   const bytes = hexToBytes(process.env.ZAP_SECRET_KEY);
-  const wrap = nip17.wrapEvent(
+  const wrap = wrapEvent(
     bytes,
     { publicKey: recipientPubkey },
     `Your npub.cash OTP: ${otp}`,

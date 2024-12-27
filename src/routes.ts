@@ -16,11 +16,14 @@ import {
   getLatestWithdrawalsController,
   getWithdrawalDetailsController,
 } from "./controller/withdrawalController";
+import { getNip98AuthController } from "./controller/auth";
 
 const routes = Router();
 
 routes.get("/.well-known/lnurlp/:user", lnurlController);
 routes.get("/.well-known/nostr.json", nip05Controller);
+
+routes.get("/auth", getNip98AuthController);
 
 routes.get(
   "/api/v1/info",

@@ -1,9 +1,8 @@
-import { Pool, QueryConfig, QueryResultRow } from "pg";
+import pkg, { QueryConfig, QueryResultRow } from "pg";
 import migrate from "node-pg-migrate";
-import path from "path";
 import { WithdrawalStore } from "../models/withdrawal";
 
-const pool = new Pool();
+const pool = new pkg.Pool();
 
 export function setupStore() {
   return WithdrawalStore.getInstance(pool);
@@ -11,7 +10,7 @@ export function setupStore() {
 
 export async function setupDatabase() {
   const dbConfig = {
-    connectionString: `postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
+    connectionString: `postgresql://postgres.lqtpoozfdlhbsmaaorjv:${process.env.PGPASSWORD}@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`,
   };
 
   await migrate({
