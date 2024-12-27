@@ -5,8 +5,10 @@ import {
   finalizeEvent,
   validateEvent,
 } from "nostr-tools";
+import nip17 from "nostr-tools/nip17";
 import { ZapRequestData } from "../types";
 import { nostrPool } from "../config";
+import { hexToBytes } from "@noble/hashes/utils";
 
 const relays = [
   "wss://relay.current.fyi",
@@ -134,4 +136,27 @@ export async function publishZapReceipt(
     Promise.race([promise, createTimeoutPromise(3000)]),
   );
   return Promise.allSettled(wrappedPromises);
+}
+
+export async function publishOtp(
+  recipientPubkey: string,
+  otp: string,
+  preferredRelay?: string,
+) {
+  if (!process.env.ZAP_SECRET_KEY) {
+    throw new Error("No nostr key set");
+  }
+  const bytes = hexToBytes(process.env.ZAP_SECRET_KEY);
+  const wrap = nip17.wrapEvent(
+    bytes,
+    { publicKey: recipientPubkey },
+    `Your npub.cash OTP: ${otp}`,
+  );
+  const pubPromises = nostrPool.publish(
+    preferredRelay ? [preferredRelay] : relays,
+    wrap,
+  );
+  return Promise.allSettled(
+    pubPromises.map((p) => Promise.race([p, createTimeoutPromise(3000)])),
+  );
 }

@@ -37,9 +37,12 @@ type PaymentResponse<TStatus = boolean> = TStatus extends true
   ? { paid: TStatus; preimage: string }
   : { paid: TStatus };
 
-export type AuthData =
-  | { authorized: false }
-  | { authorized: true; data: { pubkey: string; npub: string } };
+export type AuthorizedAuthData = {
+  authorized: true;
+  data: { pubkey: string; npub: string };
+};
+
+export type AuthData = { authorized: false } | AuthorizedAuthData;
 
 export type SuccessfullAuthData = {
   authorized: true;
