@@ -16,20 +16,13 @@ import {
   getLatestWithdrawalsController,
   getWithdrawalDetailsController,
 } from "./controller/withdrawalController";
-import { getNip98AuthController } from "./controller/auth";
+import v2Router from "./routes/v2";
 
 const routes = Router();
 const v1Router = Router();
-const v2Router = Router();
 
 routes.get("/.well-known/lnurlp/:user", lnurlController);
 routes.get("/.well-known/nostr.json", nip05Controller);
-
-v2Router.get(
-  "/auth/nip98",
-  isAuthMiddleware("/api/v2/auth", "GET"),
-  getNip98AuthController,
-);
 
 v1Router.get(
   "/info",
