@@ -5,9 +5,13 @@ import { publishOtp } from "../utils/nostr";
 
 function generateAuthJwt(pubkey: string, userAgent: string) {
   const hashedAgent = createHash("sha256").update(userAgent).digest("hex");
-  const token = jwt.sign({ pubkey, userAgent: hashedAgent }, "test", {
-    expiresIn: 60 * 30,
-  });
+  const token = jwt.sign(
+    { pubkey, userAgent: hashedAgent },
+    process.env.JWT_SECRET!,
+    {
+      expiresIn: 60 * 30,
+    },
+  );
   return token;
 }
 
