@@ -4,7 +4,7 @@ import { verifyAuth } from "../utils/auth";
 export function isAuthMiddleware(path: string, method: string) {
   async function isAuth(req: Request, res: Response, next: NextFunction) {
     const hostname = req.header("host");
-    const protocol = req.header("X-Forwarded-Proto");
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     if (!hostname) {
       res.status(400);
       return next(new Error("Missing host header"));
