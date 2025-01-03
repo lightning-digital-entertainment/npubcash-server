@@ -8,6 +8,20 @@ declare global {
   }
 }
 
+export type DecodedAuthToken = {
+  pubkey: string;
+  userAgent: string;
+  level: "nip98" | "otp";
+  canWithdraw?: boolean;
+};
+
+export type RawAuthToken = {
+  p: string;
+  u: string;
+  l: "nip98" | "otp";
+  w?: boolean;
+};
+
 export type FailedPayment = {
   id: number;
   created_at: string;
@@ -39,14 +53,14 @@ type PaymentResponse<TStatus = boolean> = TStatus extends true
 
 export type AuthorizedAuthData = {
   authorized: true;
-  data: { pubkey: string; npub: string };
+  data: { pubkey: string; npub: string; canWithdraw: boolean };
 };
 
 export type AuthData = { authorized: false } | AuthorizedAuthData;
 
 export type SuccessfullAuthData = {
   authorized: true;
-  data: { pubkey: string; npub: string };
+  data: { pubkey: string; npub: string; canWithdraw: boolean };
 };
 
 export type MintData = {

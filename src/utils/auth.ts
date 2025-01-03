@@ -1,6 +1,6 @@
 import { nip19, nip98 } from "nostr-tools";
 import jwt from "jsonwebtoken";
-import { AuthData } from "../types";
+import { AuthData, RawAuthToken, SuccessfullAuthData } from "../types";
 import { createHash } from "crypto";
 
 export async function verifyAuth(
@@ -28,29 +28,37 @@ export async function verifyAuth(
       }
       return {
         authorized: true,
-        data: { pubkey: event.pubkey, npub: nip19.npubEncode(event.pubkey) },
+        data: {
+          pubkey: event.pubkey,
+          npub: nip19.npubEncode(event.pubkey),
+          canWithdraw: true,
+        },
       };
     } else if (authHeader.startsWith("Bearer")) {
       const hashedAgent = createHash("sha256").update(userAgent).digest("hex");
       const [_, token] = authHeader.split(" ");
-      const parsedHeader = jwt.verify(token, process.env.JWT_SECRET!) as {
-        pubkey: string;
-        userAgent: string;
-      };
+      const parsedHeader = jwt.verify(
+        token,
+        process.env.JWT_SECRET!,
+      ) as RawAuthToken;
       if (
-        !parsedHeader.pubkey ||
-        !parsedHeader.userAgent ||
-        parsedHeader.userAgent !== hashedAgent
+        !parsedHeader.p ||
+        !parsedHeader.u ||
+        parsedHeader.u !== hashedAgent
       ) {
         return { authorized: false };
       }
-      const data = {
+      const data: SuccessfullAuthData = {
         authorized: true,
         data: {
-          pubkey: parsedHeader.pubkey,
-          npub: nip19.npubEncode(parsedHeader.pubkey),
+          pubkey: parsedHeader.p,
+          npub: nip19.npubEncode(parsedHeader.p),
+          canWithdraw: false,
         },
       };
+      if (parsedHeader.w) {
+        data.data.canWithdraw = true;
+      }
       return data;
     } else {
       return { authorized: false };
