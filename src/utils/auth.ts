@@ -1,11 +1,13 @@
 import { nip19, nip98 } from "nostr-tools";
 import jwt from "jsonwebtoken";
 import { AuthData } from "../types";
+import { createHash } from "crypto";
 
 export async function verifyAuth(
   authHeader: string,
   url: string,
   method: string,
+  userAgent: string,
   body?: any,
 ): Promise<AuthData> {
   try {
@@ -29,11 +31,17 @@ export async function verifyAuth(
         data: { pubkey: event.pubkey, npub: nip19.npubEncode(event.pubkey) },
       };
     } else if (authHeader.startsWith("Bearer")) {
+      const hashedAgent = createHash("sha256").update(userAgent).digest("hex");
       const [_, token] = authHeader.split(" ");
       const parsedHeader = jwt.verify(token, process.env.JWT_SECRET!) as {
         pubkey: string;
+        userAgent: string;
       };
-      if (!parsedHeader.pubkey) {
+      if (
+        !parsedHeader.pubkey ||
+        !parsedHeader.userAgent ||
+        parsedHeader.userAgent !== hashedAgent
+      ) {
         return { authorized: false };
       }
       const data = {
