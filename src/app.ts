@@ -3,8 +3,8 @@ import bodyparser from "body-parser";
 import cors from "cors";
 import compression from "compression";
 import { requireHTTPS } from "./middleware/https";
-import routes from "./routes";
 import path from "path";
+import baseRouter from "./routes";
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.use(compression());
 app.use(cors());
 app.use(requireHTTPS);
 
-app.use(routes);
+app.use(baseRouter);
 app.use(
   "/",
   express.static(path.join(import.meta.dirname, "../npubcash-website/dist")),
