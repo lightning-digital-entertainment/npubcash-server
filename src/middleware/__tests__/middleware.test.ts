@@ -34,7 +34,10 @@ describe("Auth Middleware", () => {
         return authHeader;
       }
     });
-    const req = { header: headerFunc } as unknown as Request;
+    const req = {
+      header: headerFunc,
+      get: () => "something",
+    } as unknown as Request;
     const res = { status: resStatus } as unknown as Response;
     const next = vi.fn() as unknown as NextFunction;
     const middleware = isAuthMiddleware("/test", "GET");
@@ -57,14 +60,17 @@ describe("Auth Middleware", () => {
         return authHeader;
       }
     });
-    const req = { header: headerFunc } as unknown as Request;
+    const req = {
+      header: headerFunc,
+      get: () => "something",
+    } as unknown as Request;
     const res = { status: resStatus } as unknown as Response;
     const next = vi.fn() as unknown as NextFunction;
     const middleware = isAuthMiddleware("/test", "GET");
     await middleware(req, res, next);
 
     expect(resStatus).toHaveBeenCalledWith(400);
-    expect(next).toHaveBeenCalledWith(new Error("Missing host header"));
+    expect(next).toHaveBeenCalledWith(new Error("Missing headers"));
   });
   test("should return 400 on missing host header", async () => {
     vi.mocked(headerFunc).mockImplementation((header: string) => {
@@ -78,7 +84,10 @@ describe("Auth Middleware", () => {
         return null;
       }
     });
-    const req = { header: headerFunc } as unknown as Request;
+    const req = {
+      header: headerFunc,
+      get: () => "something",
+    } as unknown as Request;
     const res = { status: resStatus } as unknown as Response;
     const next = vi.fn() as unknown as NextFunction;
     const middleware = isAuthMiddleware("/test", "GET");
@@ -101,7 +110,10 @@ describe("Auth Middleware", () => {
         return "invalid";
       }
     });
-    const req = { header: headerFunc } as unknown as Request;
+    const req = {
+      header: headerFunc,
+      get: () => "something",
+    } as unknown as Request;
     const res = { status: resStatus } as unknown as Response;
     const next = vi.fn() as unknown as NextFunction;
     const middleware = isAuthMiddleware("/test", "GET");
