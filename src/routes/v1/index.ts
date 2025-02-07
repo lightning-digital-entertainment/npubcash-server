@@ -1,11 +1,11 @@
 import { Router } from "express";
 import infoRouter from "./infoRoutes";
-import { paidController } from "../../controller/paidController";
-import { isAuthMiddleware } from "../../middleware/auth";
+import { paidController } from "@/controller/paidController";
+import { isAuthMiddleware } from "@/middleware/auth";
 import {
   balanceController,
   claimGetController,
-} from "../../controller/claimController";
+} from "@/controller/claimController";
 
 const v1Router = Router();
 

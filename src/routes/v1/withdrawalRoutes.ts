@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { isAuthMiddleware } from "../../middleware/auth";
+import { isAuthMiddleware } from "@/middleware/auth";
 import {
   getLatestWithdrawalsController,
   getWithdrawalDetailsController,
-} from "../../controller/withdrawalController";
+} from "@/controller/withdrawalController";
 
 const withdrawalRouter = Router();
 

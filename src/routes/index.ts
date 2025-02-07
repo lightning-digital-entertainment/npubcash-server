@@ -1,8 +1,8 @@
 import { Router } from "express";
 import v1Router from "./v1";
 import v2Router from "./v2";
-import { nip05Controller } from "../controller/nip05Controller";
-import { lnurlController } from "../controller/lnurlController";
+import { nip05Controller } from "@/controller/nip05Controller";
+import { lnurlController } from "@/controller/lnurlController";
 
 const baseRouter = Router();
 

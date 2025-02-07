@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { isAuthMiddleware } from "../../middleware/auth";
-import { getNip98AuthController } from "../../controller/auth";
+import { isAuthMiddleware } from "@/middleware/auth";
+import { getNip98AuthController } from "@/controller/auth";
 
 const authRouter = Router();
 

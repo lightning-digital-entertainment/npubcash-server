@@ -3,8 +3,8 @@ import {
   getInfoController,
   putMintInfoController,
   putUsernameInfoController,
-} from "../../controller/infoController";
-import { isAuthMiddleware } from "../../middleware/auth";
+} from "@/controller/infoController";
+import { isAuthMiddleware } from "@/middleware/auth";
 
 const infoRouter = Router();
 
