@@ -1,3 +1,5 @@
+import { Response } from "express";
+
 export function checkEnvVars(vars: string[]) {
   const missing: string[] = [];
   for (let i = 0; i < vars.length; i++) {
@@ -8,4 +10,13 @@ export function checkEnvVars(vars: string[]) {
   if (missing.length) {
     throw new Error(`Missing environment variables: ${missing.join(",")}`);
   }
+}
+
+export function respondWithError(
+  res: Response,
+  errorCode: number,
+  errorMessage: string,
+) {
+  res.status(errorCode);
+  res.json({ error: true, message: errorMessage });
 }
