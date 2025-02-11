@@ -13,12 +13,12 @@ app.use(bodyparser.json());
 app.use(compression());
 app.use(cors());
 app.use(requireHTTPS);
-app.use(errorHandler);
 
 app.use(baseRouter);
 app.use("/", express.static(path.join(__dirname, "../npubcash-website/dist")));
 app.get("*", (_, res: Response) => {
   res.sendFile(path.join(__dirname, "../npubcash-website/dist/index.html"));
 });
+app.use(errorHandler);
 
 export default app;
