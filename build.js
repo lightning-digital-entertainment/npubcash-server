@@ -5,6 +5,7 @@ import esbuild from "esbuild";
 esbuild
   .build({
     outdir: "dist/",
+    outExtension: { ".js": ".cjs" },
     format: "cjs",
     platform: "node",
     entryPoints: ["src/index.ts"],
