@@ -1,13 +1,13 @@
+import { lnProvider, wallet } from "@/config";
+import { BadRequestError, NotFoundError } from "@/errors";
+import { Transaction, User } from "@/models";
+import { MintQuote } from "@/models/mint";
+import { parseInvoice } from "@/utils/lightning";
+import { createLnurlResponse } from "@/utils/lnurl";
+import { decodeAndValidateZapRequest } from "@/utils/nostr";
+import { createHash } from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { Event, nip19 } from "nostr-tools";
-
-import { parseInvoice } from ".././utils/lightning";
-import { lnProvider, wallet } from "../config";
-import { Transaction, User } from "../models";
-import { createLnurlResponse } from "../utils/lnurl";
-import { decodeAndValidateZapRequest } from "../utils/nostr";
-import { createHash } from "crypto";
-import { Analyzer } from "../utils/analytics";
 
 export async function lnurlController(
   req: Request<
@@ -19,86 +19,53 @@ export async function lnurlController(
   res: Response,
   next: NextFunction,
 ) {
-  const { amount, nostr } = req.query;
-  const userParam = req.params.user;
-  let username: string | User | undefined;
-  let zapRequest: Event | undefined;
-  if (userParam.startsWith("npub")) {
-    try {
-      nip19.decode(userParam as `npub1${string}`);
-      username = userParam;
-    } catch {
-      res.status(401);
-      return next(new Error("Invalid npub / public key"));
-    }
-  } else {
-    const userObj = await User.getUserByName(userParam.toLowerCase());
-    if (!userObj) {
-      res.status(404);
-      return next(new Error("User not found"));
-    }
-    username = userObj.name;
-  }
-  if (!amount) {
-    const lnurlResponse = createLnurlResponse(username);
-    return res.json(lnurlResponse);
-  }
-  const parsedAmount = parseInt(amount);
-  if (
-    parsedAmount > Number(process.env.LNURL_MAX_AMOUNT) ||
-    parsedAmount < Number(process.env.LNURL_MIN_AMOUNT)
-  ) {
-    const err = new Error("Invalid amount");
-    return next(err);
-  }
-  if (nostr) {
-    try {
-      zapRequest = decodeAndValidateZapRequest(nostr, amount);
-    } catch (e) {
-      return res
-        .status(400)
-        .json({ error: true, message: "Invalid zap request" });
-    }
-  }
-  let mintPr: string,
-    mintHash: string,
-    invoiceRes: { paymentRequest: string; paymentHash: string };
   try {
-    const mintRes = await wallet.requestMint(Math.floor(parsedAmount / 1000));
-    ({ pr: mintPr, hash: mintHash } = mintRes);
-  } catch (e) {
-    console.log("Failed to create invoice: Mint failed");
-    console.log(e);
-    res.status(500);
-    return res.json({ error: true, message: "Something went wrong..." });
-  }
+    const { amount, nostr } = req.query;
+    const userParam = req.params.user;
+    let zapRequest: Event | undefined;
 
-  const { amount: mintAmount, expiresIn } = parseInvoice(mintPr);
+    const userdata = await extractUserdataFromUserParam(userParam);
 
-  //TODO:)Parse invoice for expiry and pass it to blink
-  try {
-    invoiceRes = await lnProvider.createInvoice(
+    if (!amount) {
+      const lnurlResponse = createLnurlResponse(userdata.username);
+      return res.json(lnurlResponse);
+    }
+    const parsedAmount = parseInt(amount);
+    if (!isValidAmount(parsedAmount)) {
+      throw new BadRequestError("Invalid amount");
+    }
+
+    if (nostr) {
+      try {
+        zapRequest = decodeAndValidateZapRequest(nostr, amount);
+      } catch (e) {
+        throw new BadRequestError("Invalid zap request");
+      }
+    }
+    const { request, quote, expiry } = await wallet.createMintQuote(
+      Math.floor(parsedAmount / 1000),
+    );
+    await MintQuote.createNewMintQuoteInDb(
+      { quote, request, expiry },
+      userdata.mintUrl,
+    );
+
+    const { amount: mintAmount } = parseInvoice(request);
+
+    const invoiceRes = await lnProvider.createInvoice(
       mintAmount / 1000,
       "Cashu Address",
       zapRequest
         ? createHash("sha256").update(JSON.stringify(zapRequest)).digest("hex")
         : undefined,
     );
-  } catch (e) {
-    console.log("Failed to create invoice: Invoice creation failed");
-    console.log(e);
-    res.status(500);
-    return res.json({ error: true, message: "Something went wrong..." });
-  }
 
-  Analyzer.getInstance().logPaymentCreated(invoiceRes.paymentHash, expiresIn);
-  try {
     await Transaction.createTransaction(
-      mintPr,
-      mintHash,
+      request,
+      quote,
       invoiceRes.paymentRequest,
       invoiceRes.paymentHash,
-      username,
+      userdata.username,
       zapRequest,
       parsedAmount / 1000,
     );
@@ -107,9 +74,42 @@ export async function lnurlController(
       routes: [],
     });
   } catch (e) {
-    console.log("Failed to create invoice: Database connection failed");
-    console.log(e);
-    res.status(500);
-    return res.json({ error: true, message: "Something went wrong..." });
+    next(e);
   }
+}
+
+async function extractUserdataFromUserParam(userParam: string): Promise<{
+  username: string;
+  pubkey: string;
+  isNpub: boolean;
+  mintUrl: string;
+}> {
+  if (userParam.startsWith("npub")) {
+    const decoded = nip19.decode(userParam as `npub1${string}`);
+    return {
+      username: userParam,
+      pubkey: decoded.data,
+      isNpub: true,
+      mintUrl: process.env.MINTURL!,
+    };
+  } else {
+    const userObj = await User.getUserByName(userParam.toLowerCase());
+    if (!userObj) {
+      throw new NotFoundError("User not found.");
+    }
+    return {
+      username: userObj.name,
+      pubkey: userObj.pubkey,
+      isNpub: false,
+      mintUrl: userObj.mint_url,
+    };
+  }
+}
+
+function isValidAmount(amount: number) {
+  return (
+    amount < Number(process.env.LNURL_MAX_AMOUNT) ||
+    amount > Number(process.env.LNURL_MIN_AMOUNT) ||
+    Number.isInteger(amount)
+  );
 }
