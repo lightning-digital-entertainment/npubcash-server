@@ -5,6 +5,7 @@ import compression from "compression";
 import { requireHTTPS } from "./middleware/https";
 import path from "path";
 import baseRouter from "./routes";
+import { errorHandler } from "./errors/middleware";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(bodyparser.json());
 app.use(compression());
 app.use(cors());
 app.use(requireHTTPS);
+app.use(errorHandler);
 
 app.use(baseRouter);
 app.use(
