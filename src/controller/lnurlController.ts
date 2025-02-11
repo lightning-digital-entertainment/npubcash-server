@@ -5,6 +5,7 @@ import { MintQuote } from "@/models/mint";
 import { parseInvoice } from "@/utils/lightning";
 import { createLnurlResponse } from "@/utils/lnurl";
 import { decodeAndValidateZapRequest } from "@/utils/nostr";
+import { unixToDate } from "@/utils/time";
 import { createHash } from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { Event, nip19 } from "nostr-tools";
@@ -46,7 +47,9 @@ export async function lnurlController(
       Math.floor(parsedAmount / 1000),
     );
     await MintQuote.createNewMintQuoteInDb(
-      { quote, request, expiry },
+      quote,
+      unixToDate(expiry),
+      request,
       userdata.mintUrl,
     );
 
