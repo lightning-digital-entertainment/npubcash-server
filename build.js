@@ -5,10 +5,9 @@ import esbuild from "esbuild";
 esbuild
   .build({
     outdir: "dist/",
-    format: "esm",
+    format: "cjs",
     platform: "node",
     entryPoints: ["src/index.ts"],
-    packages: "external",
     bundle: true,
     sourcemap: "external",
   })

@@ -16,14 +16,9 @@ app.use(requireHTTPS);
 app.use(errorHandler);
 
 app.use(baseRouter);
-app.use(
-  "/",
-  express.static(path.join(import.meta.dirname, "../npubcash-website/dist")),
-);
+app.use("/", express.static(path.join(__dirname, "../npubcash-website/dist")));
 app.get("*", (_, res: Response) => {
-  res.sendFile(
-    path.join(import.meta.dirname, "../npubcash-website/dist/index.html"),
-  );
+  res.sendFile(path.join(__dirname, "../npubcash-website/dist/index.html"));
 });
 
 export default app;
