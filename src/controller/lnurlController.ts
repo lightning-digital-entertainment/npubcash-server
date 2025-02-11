@@ -108,8 +108,8 @@ async function extractUserdataFromUserParam(userParam: string): Promise<{
 
 function isValidAmount(amount: number) {
   return (
-    amount < Number(process.env.LNURL_MAX_AMOUNT) ||
-    amount > Number(process.env.LNURL_MIN_AMOUNT) ||
+    amount < Number(process.env.LNURL_MAX_AMOUNT) &&
+    amount > Number(process.env.LNURL_MIN_AMOUNT) &&
     Number.isInteger(amount)
   );
 }
